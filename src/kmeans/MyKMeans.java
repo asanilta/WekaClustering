@@ -13,6 +13,7 @@ import weka.core.EuclideanDistance;
 import weka.core.Attribute;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,13 +26,15 @@ public class MyKMeans {
     
     Instances dataSource ;
     int numCluster; 
+    int numberIteration ;
     Instances centroid ;
     Instances firstCentroid ;
     HashMap<Integer,Integer> clusteredInstance ; // HashMap antara nomor instance dan nomor cluster
-    ArrayList<ArrayList<Integer>> listClusteredInst;
+    List<List<Integer>> listClusteredInstance ; //HashMap antara nomor cluster dan kumpulan nomor instance di cluster tersebut
     boolean finish ;
     
     MyKMeans(String filePath, int numCluster) {
+        numberIteration = 0;
         this.clusteredInstance = new HashMap<Integer,Integer>();
         this.numCluster = numCluster ;
         dataSource = loadData(filePath);
@@ -41,53 +44,78 @@ public class MyKMeans {
     }
     
     void doKMeans() {
+        System.out.println("\n======== KMeans Result ========");
+        int numIteration = 0;
+        System.out.println("Data : "+dataSource.relationName());
+        System.out.println("Number cluster : "+this.numCluster);
         initiateClusteredInstance();
         //1. Pilih random centroid
         chooseFirstCentroid() ;
+//        printFirstCentroid();
         //2. Hitung jarak tiap data dengan tiap centroid dan lakukan clustering
         clusteringInstance() ;
-        //3. Update Centroid 
-        // Clustering dan update centroid terus dilakukan sampai tidak ada hasil cluster yang berubah dari hasil cluster sebelumnya
+      
+//        //3. Update Centroid 
+//        // Clustering dan update centroid terus dilakukan sampai tidak ada hasil cluster yang berubah dari hasil cluster sebelumnya
         do {
+            numIteration++;
             updateCentroid() ;
             clusteringInstance() ;
         } while (!finish);
+        System.out.println("Total iteration : "+numIteration);
         printFirstCentroid();
         printFinalCentroid();
         printSummary();      
+        printClusteringResultWithData() ;
+        printListClusteredInstance();
+
     }
     
     void printFirstCentroid() {
-        System.out.println(" ==== First Centroid (chosen randomly) ====");
-        for (int i=0;i<numCluster;i++) System.out.println("Centroid  "+i+" : "+centroid.get(i));   
+        System.out.println("\n ==== First Centroid (chosen randomly) ====");
+        for (int i=0;i<numCluster;i++) System.out.println("Centroid  "+i+" : "+firstCentroid.get(i));   
     }
     
     void printFinalCentroid() {
-         System.out.println(" ====*** Final Centroid ***====");
+         System.out.println("\n ====*** Final Centroid ***====");
         for (int i=0;i<numCluster;i++) System.out.println("Centroid  "+i+" : "+centroid.get(i));        
     }
     
     void printClusteringResultWithData() {
+        System.out.println("\n --- LIST DATA WITH NUMBER CLUSTER ---");
         for (int i=0;i<dataSource.size();i++) {
             System.out.println(dataSource.get(i)+" : "+clusteredInstance.get(i));
         }
     }
     
     void printSummary() {
+        System.out.println("\n ------ SUMMARY ------");
         for (int i=0;i<numCluster;i++) {
-            int total = listClusteredInst.get(i).size();
-            System.out.println("Total instance clustered in cluster  "+i+" : "+total+" ( "+(double)total/dataSource.size()+" ) ");
+            int total = listClusteredInstance.get(i).size();
+            System.out.println("Total instance clustered in cluster  "+i+" : "+total+" ( "+(double)total*100/dataSource.size()+"% ) ");
         }        
     }
+    
+    void printListClusteredInstance() {
+        System.out.println("\n --- LIST CLUSTER WITH  DATA ---");
+        for (int i=0;i<numCluster;i++) {
+            List<Integer> listInst = listClusteredInstance.get(i);
+            System.out.println("Centroid "+i+" : ");
+            for (int j=0;j<listInst.size();j++) {
+                System.out.println("    "+dataSource.get(listInst.get(j)));
+            }
+        }
+    }
+    
     void updateCentroid() {
         for (int i=0;i<numCluster;i++) {
             //Update centroid per cluster
-            ArrayList<Integer> listNumInstance = listClusteredInst.get(i);
+//            ArrayList<Integer> listNumInstance = listClusteredInst.get(i);
             for (int j=0;j<dataSource.numAttributes();j++) {
                 //untuk seluruh atribut
-                if (dataSource.attribute(i).isNominal()) {
+               if (dataSource.attribute(j).isNominal()) {
                     updateCentroidForNominal(i,j);
-                } else if (dataSource.attribute(i).isNumeric()) {
+                } else if (dataSource.attribute(j).isNumeric()) {
                     updateCentroidForNumeric(i,j);
                 }
             }
@@ -95,7 +123,8 @@ public class MyKMeans {
     }
     
     void updateCentroidForNumeric(int numCentroid, int numAttr) {
-        ArrayList<Integer> listInst = listClusteredInst.get(numCentroid);
+      //  System.out.println("Update centroid "+numCentroid+" attr "+dataSource.attribute(numAttr)+"|"+numAttr);
+        List<Integer> listInst = listClusteredInstance.get(numCentroid);
         Attribute attr= dataSource.attribute(numAttr);
         double sum = 0 ;
         for (int i=0; i<listInst.size();i++) {
@@ -109,17 +138,19 @@ public class MyKMeans {
     }
     
     void updateCentroidForNominal(int numCentroid, int numAttr) {
-       int distinctValue = dataSource.attribute(numAttr).numValues();
+       // System.out.println("Update centroid "+numCentroid+" attr "+dataSource.attribute(numAttr)+"|"+numAttr);
+        int distinctValue = dataSource.attribute(numAttr).numValues();
        int[] countInst = new int[distinctValue] ;
        for (int i=0;i<distinctValue;i++) countInst[i]++;
        Attribute attr = dataSource.attribute(numAttr);
-       ArrayList<Integer> listInst = listClusteredInst.get(numCentroid);
+       List<Integer> listInst = listClusteredInstance.get(numCentroid);
        //Mencari nilai attribut paling banyak dalam 1 cluster
        for (int i=0 ; i<listInst.size();i++) {
            Instance inst = dataSource.get(listInst.get(i));
            if (!inst.isMissing(attr)) {
             String attrValue = inst.toString(attr);
             int indexValue = attr.indexOfValue(attrValue);
+           // System.out.println(inst+"|"+attrValue+"|"+indexValue);
             countInst[indexValue]++;
            }
        }
@@ -141,7 +172,6 @@ public class MyKMeans {
     //Jika hasil clustering sama dengan cluster sebelumnya, variabel "finish" akan bernilai true
     //Jika ada hasil cluster yang berubah, variabel "finish" bernilai false
     void clusteringInstance() {
-        listClusteredInst = new ArrayList<ArrayList<Integer>>();
         ArrayList<Integer> tempList = new ArrayList<Integer>() ;
         Instances tempInst = new Instances(dataSource,0);
         EuclideanDistance ed = new EuclideanDistance(centroid);
@@ -149,23 +179,37 @@ public class MyKMeans {
         int checkNumberChange = 0 ;
         for (int i=0;i<numCluster;i++) {
             pointList[i] = i ;
-            listClusteredInst.add(tempList);
-        }
+        } 
         for (int i=0;i<dataSource.numInstances();i++) {
+            int clusterNumber = -1;
             Instance currentInst = dataSource.get(i);
             try {
-                int clusterNumber = ed.closestPoint(currentInst,centroid, pointList);
-                int clusterBefore = clusteredInstance.put(i,clusterNumber);
-                if (clusterNumber!=clusterBefore) checkNumberChange++;
-                tempList = listClusteredInst.get(clusterNumber);
-                tempList.add(i);
-                listClusteredInst.set(clusterNumber, tempList);
-            } catch (Exception ex) {
+                clusterNumber = ed.closestPoint(currentInst,centroid, pointList);
+            }
+            catch (Exception ex) {
                 System.out.println("************** "+ex.toString());
             }
+            int clusterBefore = clusteredInstance.put(i,clusterNumber);
+            if (clusterNumber!=clusterBefore) checkNumberChange++;           
         }
         if (checkNumberChange!=0) finish=false ;
         else finish = true ;
+        updateListClusteredInstance();
+      //  printListClusteredInstance();
+    }
+    
+    void updateListClusteredInstance() {
+        listClusteredInstance = new ArrayList<List<Integer>>();
+        for (int i=0;i<numCluster;i++) {
+            List<Integer> temp = new ArrayList<Integer>() ;
+            listClusteredInstance.add(temp);
+        }
+        for (int i=0;i<dataSource.size();i++) {
+            int clustNum = clusteredInstance.get(i);
+            List<Integer> temp = listClusteredInstance.get(clustNum);            
+           temp.add(i);
+            listClusteredInstance.set(clustNum, temp);                    
+        }
     }
     
     void initiateClusteredInstance() {
