@@ -28,7 +28,7 @@ public class MyAgnes extends AbstractClusterer {
     HashMap<Integer[],Double> distanceMatrix = new HashMap<>();
     ArrayList<ArrayList<ArrayList<Instance>>> finalClusters = new ArrayList<>();
     EuclideanDistance distanceCounter;
-//    HashMap<Instance,Integer> instanceID = new HashMap<>();
+    HashMap<Instance,Integer> instanceID = new HashMap<>();
     
     MyAgnes(String _link, int _noOfClusters) {
         link = _link;
@@ -53,18 +53,16 @@ public class MyAgnes extends AbstractClusterer {
         for (int i=0;i<data.numInstances();i++) {
             currentClusters.add(new ArrayList<>());
             currentClusters.get(i).add(data.instance(i));
-//            instanceID.put(data.instance(i),i);
+            instanceID.put(data.instance(i),i);
         }
         addNewClusterHierarchy(currentClusters);
     }
     
     private void addNewClusterHierarchy(ArrayList<ArrayList<Instance>> currentClusters) {
         finalClusters.add(currentClusters);
-//        for (int i=0;i<currentClusters.size();i++) printCluster(currentClusters.get(i));
         if (currentClusters.size()>noOfClusters) {
             updateDistanceMatrix(currentClusters);
             Integer[] key = findClosestClusters(currentClusters);
-//            System.out.println("Closest clusters: "+key[0]+" "+key[1]);
             ArrayList<ArrayList<Instance>> newClusters = new ArrayList<>();
             for (int j=0;j<currentClusters.size();j++) {
                 newClusters.add(new ArrayList<>());
@@ -131,28 +129,36 @@ public class MyAgnes extends AbstractClusterer {
                 System.out.println("");
             }
             System.out.println("-----------------\n");
-            /*
-            ArrayList<ArrayList<Instance>> clusterHierarchy = finalClusters.get(i);
-            System.out.println(clusterHierarchy.size()+" Clusters:");
-            int j;
-            for (j=0;j<clusterHierarchy.size()-1;j++) {
-                printCluster(clusterHierarchy.get(j));
-                System.out.print(",");
-            }
-            printCluster(clusterHierarchy.get(j));
-            System.out.println("\n");*/
+            
         }
     }
     
     private void printCluster(ArrayList<Instance> cluster) {
-        /*System.out.print("(");
-        int i;
-        for (i=0;i<cluster.size()-1;i++) {
-            System.out.println(cluster.get(i).toString());
-        }
-        System.out.print(instanceID.get(cluster.get(i))+")");*/
         for (int i=0;i<cluster.size();i++) {
             System.out.println(cluster.get(i).toString());
+        }
+    }
+    
+    private void printClusterID(ArrayList<Instance> cluster) {
+        System.out.print("(");
+        int i;
+        for (i=0;i<cluster.size()-1;i++) {
+            System.out.print(instanceID.get(cluster.get(i))+",");
+        }
+        System.out.print(instanceID.get(cluster.get(i))+")");
+    }
+    
+    public void printClustersID() {
+        for (int i=0;i<finalClusters.size();i++) {
+            ArrayList<ArrayList<Instance>> clusterHierarchy = finalClusters.get(i);
+            System.out.println(clusterHierarchy.size()+" Clusters:");
+            int j;
+            for (j=0;j<clusterHierarchy.size()-1;j++) {
+                printClusterID(clusterHierarchy.get(j));
+                System.out.print(",");
+            }
+            printClusterID(clusterHierarchy.get(j));
+            System.out.println("\n");
         }
     }
 }

@@ -22,6 +22,7 @@ public class AgnesMain {
         Instances data = loadData("src/Dataset/weather.numeric.arff");
         MyAgnes agnes = new MyAgnes("complete",3);
         agnes.buildClusterer(data);
+//        agnes.printClustersID();
         agnes.printClusters();
     }
  
