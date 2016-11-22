@@ -20,7 +20,8 @@ public class AgnesMain {
     public static void main(String[] args) {
 //        Instances data = loadData("C:\\Program Files\\Weka-3-8\\data\\weather.numeric.arff");
         Instances data = loadData("src/Dataset/weather.numeric.arff");
-        MyAgnes agnes = new MyAgnes("single",data);
+        MyAgnes agnes = new MyAgnes("complete",3);
+        agnes.buildClusterer(data);
         agnes.printClusters();
     }
  
