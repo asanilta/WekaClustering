@@ -3,45 +3,45 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package agnes;
+package kmeans_extend;
+
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
+import kmeans.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import weka.core.Attribute;
+import weka.core.Instance;
 import java.util.Scanner;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import weka.clusterers.ClusterEvaluation;
 import weka.core.Instances;
-
+import weka.core.EuclideanDistance;
 /**
  *
  * @author ASUS X202E
  */
-public class AgnesMain {
+public class KMeansMain {
+    /**
+     * @param args the command line arguments
+     */
     public static void main(String[] args) throws Exception {
-//        Instances data = loadData("C:\\Program Files\\Weka-3-8\\data\\weather.numeric.arff");
-        System.out.print("File: ");
-        Scanner scanner = new Scanner(System.in);
-        String filename = scanner.next();
-        System.out.print("Number of clusters: ");
+        System.out.print("Put number cluster : ");
+       Scanner scanner = new Scanner(System.in);
         int numCluster = scanner.nextInt();
-        System.out.print("Single/complete: ");
-        String link = scanner.next();
         Instances data = loadData("src/Dataset/weather.arff");
-        MyAgnes agnes = new MyAgnes(link,numCluster);
-        agnes.buildClusterer(data);
-        System.out.println("Cluster Hierarchies:\n");
-        agnes.printClustersID();
+        MyKMeans kmeans = new MyKMeans(numCluster);
+        kmeans.buildClusterer(data);
+        kmeans.printFinalCentroid();
         ClusterEvaluation eval = new ClusterEvaluation();
-        eval.setClusterer(agnes);
+        eval.setClusterer(kmeans);
         eval.evaluateClusterer(data);
-        System.out.println("Cluster Evaluation:");
+        System.out.println("\n==== Evaluation Result ====");
         System.out.println(eval.clusterResultsToString());
-//        agnes.printClusters();
+        
+        
     }
- 
-    public static Instances loadData (String filePath) {
+    
+        public static Instances loadData (String filePath) {
             BufferedReader reader;
             Instances data = null ;
             try {
@@ -54,4 +54,5 @@ public class AgnesMain {
             }
             return data ;
         }
+
 }
