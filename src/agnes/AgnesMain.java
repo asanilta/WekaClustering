@@ -8,8 +8,10 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import weka.clusterers.ClusterEvaluation;
 import weka.core.Instances;
 
 /**
@@ -17,13 +19,26 @@ import weka.core.Instances;
  * @author ASUS X202E
  */
 public class AgnesMain {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
 //        Instances data = loadData("C:\\Program Files\\Weka-3-8\\data\\weather.numeric.arff");
-        Instances data = loadData("src/Dataset/weather.numeric.arff");
-        MyAgnes agnes = new MyAgnes("complete",3);
+        System.out.print("File: ");
+        Scanner scanner = new Scanner(System.in);
+        String filename = scanner.next();
+        System.out.print("Number of clusters: ");
+        int numCluster = scanner.nextInt();
+        System.out.print("Single/complete: ");
+        String link = scanner.next();
+        Instances data = loadData("src/Dataset/"+filename);
+        MyAgnes agnes = new MyAgnes(link,numCluster);
         agnes.buildClusterer(data);
-//        agnes.printClustersID();
-        agnes.printClusters();
+        System.out.println("Cluster Hierarchies:\n");
+        agnes.printClustersID();
+        ClusterEvaluation eval = new ClusterEvaluation();
+        eval.setClusterer(agnes);
+        eval.evaluateClusterer(data);
+        System.out.println("Cluster Evaluation:");
+        System.out.println(eval.clusterResultsToString());
+//        agnes.printClusters();
     }
  
     public static Instances loadData (String filePath) {

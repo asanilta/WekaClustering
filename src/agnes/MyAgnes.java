@@ -118,7 +118,29 @@ public class MyAgnes extends AbstractClusterer {
         return Collections.max(distances);
     }
     
+    public int clusterInstance(Instance instance) {
+        double min = 999;
+        int clusterNo = -1;
+        double distance = 0;
+        ArrayList<Instance> newcluster = new ArrayList<>();
+        newcluster.add(instance);
+        ArrayList<ArrayList<Instance>> clusters = finalClusters.get(finalClusters.size()-1);
+        for (int i=0;i<clusters.size();i++) {
+            if (link.equals("single")) {
+                distance = findClosestDistance(clusters.get(i),newcluster);
+            } else if (link.equals("complete")) {
+                distance = findFurthestDistance(clusters.get(i),newcluster);
+            }
+            if (distance<=min) {
+                min = distance;
+                clusterNo = i;
+            }
+        }
+        return clusterNo;
+    }
+    
     public void printClusters() {
+        System.out.println("-----------------\n");
         for (int i=0;i<finalClusters.size();i++) {
             ArrayList<ArrayList<Instance>> clusterHierarchy = finalClusters.get(i);
             System.out.println(clusterHierarchy.size()+" CLUSTERS:\n");
